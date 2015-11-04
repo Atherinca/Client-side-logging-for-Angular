@@ -12,6 +12,16 @@ angular.module('angularLogApp')
   .factory('errorLogService', function ($log, $window, stacktraceService) {
     // I log the given error to the remote server.
 
+    var param = {
+      url : "localhost",
+      enabled : false
+    };
+
+    function config(url, enabled){
+      param.url = url;
+      param.enabled = enabled;
+    }
+
     function log( exception, cause) {
 
       // Pass off the error to the default error handler
@@ -22,30 +32,18 @@ angular.module('angularLogApp')
       $log.error.apply( $log, arguments );
 
 
-
       // Now, we need to try and log the error the server.
-      // --
-      // NOTE: In production, I have some debouncing
-      // logic here to prevent the same client from
-      // logging the same error over and over again! All
-      // that would do is add noise to the log.
-
 
       try {
         var errorMessage = exception.toString();
         var stackTrace = stacktraceService.print({ e: exception });
         var httpRequest = false;
         var sending = angular.toJson({
-          errorUrl: $window.location.href,
-          errorMessage: errorMessage,
-          stackTrace: stackTrace,
-          cause: ( cause || "")
+          errUrl: $window.location.href,
+          errMessage: errorMessage,
+          stackTrace: stackTrace
         });
-
         // Log the JavaScript error to the server.
-        // --
-        // NOTE: In this demo, the POST URL doesn't
-        // exists and will simply return a 404.
 
 
         if (window.XMLHttpRequest){
@@ -58,9 +56,12 @@ angular.module('angularLogApp')
           console.log("Erreur impossible de créer une requête!");
           return false;
         }
-        httpRequest.open('POST', "/", true);
-        httpRequest.setRequestHeader('Content-type', 'application/x-form-urlencoded');
-        httpRequest.send(sending);
+        if (param.enabled == true){
+          httpRequest.open('POST', param.url, true);
+          httpRequest.setRequestHeader('Content-type', 'application/json');
+          httpRequest.send(sending);
+        }
+
 
       } catch ( loggingError ) {
         // For Developers - log the log-failure.
@@ -69,5 +70,8 @@ angular.module('angularLogApp')
       }
     }
     // Return the logging function.
-    return( log );
+    return{
+      log : log,
+      config : config
+    };
   });

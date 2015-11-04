@@ -11,6 +11,6 @@ angular.module('angularLogApp')
   .provider("$exceptionHandler",
   {
     $get: function( errorLogService) {
-      return( errorLogService);
+      return( errorLogService.log);
     }
   });
