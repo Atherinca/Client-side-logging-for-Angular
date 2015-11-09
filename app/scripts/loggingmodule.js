@@ -14,5 +14,5 @@ angular
   ])
 
  .config(['errorLogServiceProvider', function(errorLogServiceProvider){
-    errorLogServiceProvider.setConfig("http://localhost:8081/receiveangularlog", true);
+    errorLogServiceProvider.setConfig("http://localhost:8080/LogServer/receiveangularlog", true);
 }]);
