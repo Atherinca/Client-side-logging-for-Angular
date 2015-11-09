@@ -9,69 +9,56 @@
  */
 
 angular.module('angularLogApp')
-  .factory('errorLogService', function ($log, $window, stacktraceService) {
-    // I log the given error to the remote server.
+  .provider('errorLogService', function () {
 
     var param = {
       url : "localhost",
       enabled : false
     };
 
-    function config(url, enabled){
+    this.setConfig = function(url, enabled) {
       param.url = url;
       param.enabled = enabled;
-    }
+    };
+    // I log the given error to the remote server.
+    this.$get = ['$window', '$log', 'stacktraceService', function($window, $log, stacktraceService) {
 
-    function log( exception, cause) {
 
       // Pass off the error to the default error handler
       // on the AngualrJS logger. This will output the
       // error to the console (and let the application
       // keep running normally for the user).
 
-      $log.error.apply( $log, arguments );
+      var $http = angular.injector(['ng']).get('$http');
 
+      this.log = function log( exception, cause) {
 
-      // Now, we need to try and log the error the server.
+        // Now, we need to try and log the error the server.
 
-      try {
-        var errorMessage = exception.toString();
-        var stackTrace = stacktraceService.print({ e: exception });
-        var httpRequest = false;
-        var sending = angular.toJson({
-          errUrl: $window.location.href,
-          errMessage: errorMessage,
-          stackTrace: stackTrace
-        });
-        // Log the JavaScript error to the server.
-
-
-        if (window.XMLHttpRequest){
-          httpRequest = new XMLHttpRequest();
+        $http.defaults.useXDomain = true;
+        try {
+          var errorMessage = exception.toString();
+          var stackTrace = stacktraceService.print({e: exception});
+          var sending = angular.toJson({
+            errUrl: $window.location.href,
+            errMessage: errorMessage,
+            stackTrace: stackTrace
+          });
+          var req = {
+            method : 'POST',
+            url : param.url,
+            headers : {
+              'Content-Type' : 'application/json'
+            },
+            data : sending
+          };
+          $http(req);
+        }catch (loggingError) {
+          // For Developers - log the log-failure.
+          $log.warn("Error logging failed");
+          $log.log(loggingError);
         }
-        else if (window.ActiveXObject){
-          httpRequest = new ActiveXObject("Microsot.XMLHTTP");
-        }
-        if(!httpRequest){
-          console.log("Erreur impossible de créer une requête!");
-          return false;
-        }
-        if (param.enabled == true){
-          httpRequest.open('POST', param.url, true);
-          httpRequest.setRequestHeader('Content-type', 'application/json');
-          httpRequest.send(sending);
-        }
-
-
-      } catch ( loggingError ) {
-        // For Developers - log the log-failure.
-        $log.warn( "Error logging failed" );
-        $log.log( loggingError );
-      }
-    }
-    // Return the logging function.
-    return{
-      log : log,
-      config : config
-    };
+      };
+      return this;
+    }]
   });

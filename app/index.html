@@ -7,10 +7,6 @@
     <meta name="viewport" content="width=device-width">
   </head>
   <body ng-app="angularLogApp">
-   <div ng-controller="configCtrl">
-     {{setconfig("http://localhost:8080/LogServer/receiveangularlog", true)}}
-   </div>
-
     <div ng-controller="CauseerrorCtrl">
       <button ng-click="causeError()">Cause error</button>
     </div>
@@ -18,6 +14,7 @@
     <!-- build:js(.) scripts/vendor.js -->
     <!-- bower:js -->
     <script src="bower_components/angular/angular.js"></script>
+    <script src="bower_components/angular-route/angular-route.js"></script>
     <!-- endbower -->
     <!-- endbuild -->
 
@@ -28,7 +25,6 @@
     <script src="scripts/services/exceptionhandler.js"></script>
     <script src="scripts/services/errorlogservice.js"></script>
     <script src="scripts/controllers/causeerror.js"></script>
-    <script src="scripts/controllers/configCtrl.js"></script>
         <!-- endbuild -->
 </body>
 </html>
